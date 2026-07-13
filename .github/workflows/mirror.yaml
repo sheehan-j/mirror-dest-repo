@@ -1,0 +1,31 @@
+name: Mirror Repository
+
+on:
+    push:
+
+jobs:
+    mirror:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Configure SSH
+              run: |
+                  mkdir -p ~/.ssh
+
+                  echo "${{ secrets.MIRROR_SSH_KEY }}" > ~/.ssh/id_ed25519
+
+                  chmod 600 ~/.ssh/id_ed25519
+
+                  ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+            - name: Add mirror remote
+              run: |
+                  git remote add mirror git@github.com:sheehan-j/mirror-dest-repo.git
+
+            - name: Mirror repository
+              run: |
+                  git push --mirror mirror
